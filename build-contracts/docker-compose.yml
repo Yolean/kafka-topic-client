@@ -1,0 +1,16 @@
+version: "2"
+services:
+  zookeeper:
+    image: solsson/zookeeper
+  kafka:
+    image: solsson/kafka
+    links:
+      - zookeeper
+  client:
+    build: ../
+    links:
+      - zookeeper
+  test:
+    build: ./node-client
+    links:
+      - kafka

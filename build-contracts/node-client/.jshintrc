@@ -1,0 +1,14 @@
+{
+  "strict": false,
+  "node": true,
+  "browser": true,
+  "esnext": true,
+  "globals": {
+    "describe": true,
+    "it": true,
+    "beforeEach": true
+  },
+  "globalstrict": true,
+  "undef": true,
+  "unused": true
+}
