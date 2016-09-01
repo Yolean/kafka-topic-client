@@ -36,8 +36,14 @@ public class Client {
     ZkUtils zkUtils = new ZkUtils(zkClient, new ZkConnection(zookeeperConnect), isSecureKafkaCluster);
 
 
-    Properties topicConfig = new Properties(); // add per-topic configurations settings here
-    AdminUtils.createTopic(zkUtils, topicName, partitions, replication, topicConfig);
+    if (!AdminUtils.topicExists(zkUtils, topicName)) {
+      System.out.println("Creating topic " + topicName);
+      Properties topicConfig = new Properties(); // add per-topic configurations settings here
+      AdminUtils.createTopic(zkUtils, topicName, partitions, replication, topicConfig);
+    } else {
+      System.out.println("Topic " + topicName + "already exists! Nothing to do here.");
+    }
+
     zkClient.close();
   }
 

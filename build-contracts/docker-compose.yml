@@ -12,5 +12,7 @@ services:
       - zookeeper
   test:
     build: ./node-client
+    labels:
+      com.yolean.build-contract: "" 
     links:
       - kafka
