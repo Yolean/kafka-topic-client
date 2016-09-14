@@ -1,1 +1,1 @@
-Dockerfile.dev
+Dockerfile.prod
