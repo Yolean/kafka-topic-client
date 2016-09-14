@@ -1,7 +1,9 @@
+import kafka.admin.AdminOperationException;
 import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.ZkConnection;
 
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 import kafka.admin.AdminUtils;
 import kafka.utils.ZKStringSerializer$;
@@ -10,8 +12,11 @@ import kafka.utils.ZkUtils;
 public class Client {
 
   final static String topicName = System.getenv("TOPIC_NAME");
+  final static boolean resetTopic = Boolean.parseBoolean(System.getenv("RESET_TOPIC"));
   final static int partitions = Integer.parseInt(System.getenv("NUM_PARTITIONS"));
   final static int replication = Integer.parseInt(System.getenv("NUM_REPLICAS"));
+
+  final static int nRetries = Integer.parseInt(System.getenv("NUM_CREATE_RETRIES"));
 
   public static void main(String[] args) throws Exception {
     if (topicName.length() < 1) {
@@ -35,16 +40,34 @@ public class Client {
     final boolean isSecureKafkaCluster = false;
     ZkUtils zkUtils = new ZkUtils(zkClient, new ZkConnection(zookeeperConnect), isSecureKafkaCluster);
 
+    if (resetTopic && AdminUtils.topicExists(zkUtils, topicName)) {
+      System.out.println("Deleting topic " + topicName);
+      AdminUtils.deleteTopic(zkUtils, topicName);
+    }
 
     if (!AdminUtils.topicExists(zkUtils, topicName)) {
-      System.out.println("Creating topic " + topicName);
-      Properties topicConfig = new Properties(); // add per-topic configurations settings here
-      AdminUtils.createTopic(zkUtils, topicName, partitions, replication, topicConfig);
+      tryCreate(zkUtils, topicName, nRetries);
     } else {
-      System.out.println("Topic " + topicName + "already exists! Nothing to do here.");
+      System.out.println("Topic \"" + topicName + "\" already exists! Nothing to do here.");
     }
 
     zkClient.close();
+  }
+
+  private static void tryCreate(ZkUtils zkUtils, String topicName, int nRetriesLeft) throws InterruptedException {
+    System.out.println("Creating topic " + topicName);
+    Properties topicConfig = new Properties(); // add per-topic configurations settings here
+    try {
+      AdminUtils.createTopic(zkUtils, topicName, partitions, replication, topicConfig);
+    } catch (Exception e) {
+      if (nRetriesLeft <= 0) {
+        throw new RuntimeException("Failed to create topic \"" + topicName + "\". Is Kafka and Zookeeper running?");
+      } else {
+        System.out.println("Failed to create topic, trying again in 5 seconds...");
+        TimeUnit.SECONDS.sleep(5);
+        tryCreate(zkUtils, topicName, nRetriesLeft - 1);
+      }
+    }
   }
 
 }
