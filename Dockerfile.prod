@@ -1,16 +1,21 @@
 FROM maven:3.3.9-jdk-8
 
-WORKDIR /tmp
+WORKDIR /usr/src/app
 
-COPY . .
+ENV M2_REPO "/.m2-build"
+
+COPY pom.xml .
+
+RUN mkdir -p src/main/java src/test/java
+COPY Client.dummy.java src/main/java/Client.java
 
 RUN mvn package
 
-COPY target/kafka-topic-client-1.0-SNAPSHOT-jar-with-dependencies.jar /usr/src/app/kafka-topic-client.jar
+COPY src src
 
-RUN rm -r .
+RUN mvn package
 
-WORKDIR /usr/src/app
+COPY target/kafka-topic-client-1.0-SNAPSHOT-jar-with-dependencies.jar kafka-topic-client.jar
 
 ENV TOPIC_NAME "build-contract-test"
 ENV RESET_TOPIC false
