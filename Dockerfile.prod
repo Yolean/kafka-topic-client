@@ -1,0 +1,22 @@
+FROM maven:3.3.9-jdk-8
+
+WORKDIR /tmp
+
+COPY . .
+
+RUN mvn package
+
+COPY target/kafka-topic-client-1.0-SNAPSHOT-jar-with-dependencies.jar /usr/src/app/kafka-topic-client.jar
+
+RUN rm -r .
+
+WORKDIR /usr/src/app
+
+ENV TOPIC_NAME "build-contract-test"
+ENV RESET_TOPIC false
+ENV NUM_PARTITIONS 1
+ENV NUM_REPLICAS 1
+ENV NUM_CREATE_RETRIES 5
+
+ENTRYPOINT ["java", "-jar", "kafka-topic-client.jar"]
+

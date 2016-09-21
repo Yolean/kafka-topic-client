@@ -1,0 +1,29 @@
+version: "2"
+services:
+  zookeeper:
+    image: solsson/zookeeper
+  kafka:
+    image: solsson/kafka
+    links:
+      - zookeeper
+  client-create:
+    build: ../
+    labels:
+      com.yolean.build-contract: ""
+    links:
+      - zookeeper
+  client-reset:
+    build: ../
+    entrypoint: "bash -c \"sleep 10 && java -jar kafka-topic-client.jar\""
+    labels:
+      com.yolean.build-contract: ""
+    environment:
+      RESET_TOPIC: "true"
+    links:
+      - zookeeper
+  test:
+    build: ./node-client
+    labels:
+      com.yolean.build-contract: ""
+    links:
+      - kafka
