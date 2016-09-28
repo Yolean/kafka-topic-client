@@ -15,7 +15,7 @@ COPY src src
 
 RUN mvn package
 
-COPY target/kafka-topic-client-1.0-SNAPSHOT-jar-with-dependencies.jar kafka-topic-client.jar
+RUN cp target/kafka-topic-client-1.0-SNAPSHOT-jar-with-dependencies.jar kafka-topic-client.jar
 
 ENV TOPIC_NAME "build-contract-test"
 ENV RESET_TOPIC false
