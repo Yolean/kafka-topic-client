@@ -43,6 +43,11 @@ public class Client {
     if (resetTopic && AdminUtils.topicExists(zkUtils, topicName)) {
       System.out.println("Deleting topic " + topicName);
       AdminUtils.deleteTopic(zkUtils, topicName);
+
+      while (AdminUtils.topicExists(zkUtils, topicName)) {
+        System.out.println("Waiting for kafka to really delete topic ...");
+        TimeUnit.SECONDS.sleep(1);
+      }
     }
 
     if (!AdminUtils.topicExists(zkUtils, topicName)) {
