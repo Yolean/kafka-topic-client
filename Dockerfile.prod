@@ -17,6 +17,9 @@ RUN mvn package
 
 RUN cp target/kafka-topic-client-1.0-SNAPSHOT-jar-with-dependencies.jar kafka-topic-client.jar
 
+# This cleanup will probably not reduce image size as the layers have already been produced
+RUN mvn clean && rm -Rf /m2-build-repository && rm $MAVEN_CONFIG/settings.xml
+
 ENV TOPIC_NAME "build-contract-test"
 ENV RESET_TOPIC false
 ENV NUM_PARTITIONS 1
