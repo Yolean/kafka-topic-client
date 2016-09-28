@@ -7,7 +7,6 @@ COPY maven-docker-build-settings.xml $MAVEN_CONFIG/settings.xml
 COPY pom.xml .
 
 RUN mkdir -p src/main/java src/test/java
-COPY Client.dummy.java src/main/java/Client.java
 
 RUN mvn package
 
