@@ -2,7 +2,7 @@ FROM maven:3.3.9-jdk-8
 
 WORKDIR /usr/src/app
 
-ENV M2_REPO "/.m2-build"
+COPY maven-docker-build-settings.xml $MAVEN_CONFIG/settings.xml
 
 COPY pom.xml .
 
