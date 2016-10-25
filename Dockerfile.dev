@@ -4,6 +4,7 @@ WORKDIR /usr/src/app
 
 COPY target/kafka-topic-client-1.0-SNAPSHOT-jar-with-dependencies.jar kafka-topic-client.jar
 
+ENV ZOOKEEPER_CONNECT "zookeeper:2181"
 ENV TOPIC_NAME "build-contract-test"
 ENV RESET_TOPIC false
 ENV NUM_PARTITIONS 1

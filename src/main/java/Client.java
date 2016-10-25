@@ -18,12 +18,13 @@ public class Client {
 
   final static int nRetries = Integer.parseInt(System.getenv("NUM_CREATE_RETRIES"));
 
+  final static String zookeeperConnect = System.getenv("ZOOKEEPER_CONNECT");
+
   public static void main(String[] args) throws Exception {
     if (topicName.length() < 1) {
       throw new Exception("Missing environment variable 'TOPIC_NAME'!");
     }
 
-    String zookeeperConnect = "zookeeper:2181";
     final int sessionTimeoutMs = 10 * 1000;
     final int connectionTimeoutMs = 8 * 1000;
     // Note: You must initialize the ZkClient with ZKStringSerializer.  If you don't, then
