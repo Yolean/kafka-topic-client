@@ -21,9 +21,10 @@ public class Client {
   final static String zookeeperConnect = System.getenv("ZOOKEEPER_CONNECT");
 
   public static void main(String[] args) throws Exception {
-    if (topicName.length() < 1) {
-      throw new Exception("Missing environment variable 'TOPIC_NAME'!");
-    }
+    if (topicName.length() < 1) throw new Exception("Missing environment variable 'TOPIC_NAME'!");
+    if (zookeeperConnect.length() < 1) throw new Exception("Missing environment variable 'ZOOKEEKER_CONNECT'");
+
+    System.out.println("Connecting to zookeeper using address '" + zookeeperConnect + "'");
 
     final int sessionTimeoutMs = 10 * 1000;
     final int connectionTimeoutMs = 8 * 1000;
@@ -66,6 +67,7 @@ public class Client {
     try {
       AdminUtils.createTopic(zkUtils, topicName, partitions, replication, topicConfig);
     } catch (Exception e) {
+      System.err.println("Topic create failed due to " + e.toString());
       if (nRetriesLeft <= 0) {
         throw new RuntimeException("Failed to create topic \"" + topicName + "\". Is Kafka and Zookeeper running?");
       } else {
@@ -74,6 +76,8 @@ public class Client {
         tryCreate(zkUtils, topicName, nRetriesLeft - 1);
       }
     }
+
+    System.out.println("Successfully created topic '" + topicName + "'");
   }
 
 }
