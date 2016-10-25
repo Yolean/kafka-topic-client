@@ -8,8 +8,10 @@ services:
       - zookeeper
   client:
     build: ../
+    image: localhost:5000/yolean/kafka-topic-client:$PUSH_TAG
     labels:
       com.yolean.build-contract: ""
+      com.yolean.build-target: ""
     links:
       - zookeeper
   test:
