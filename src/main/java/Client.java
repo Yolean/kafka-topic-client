@@ -6,6 +6,8 @@ import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import kafka.admin.AdminUtils;
+import kafka.admin.RackAwareMode;
+import kafka.admin.RackAwareMode.Safe$;
 import kafka.utils.ZKStringSerializer$;
 import kafka.utils.ZkUtils;
 
@@ -15,6 +17,7 @@ public class Client {
   final static boolean resetTopic = Boolean.parseBoolean(System.getenv("RESET_TOPIC"));
   final static int partitions = Integer.parseInt(System.getenv("NUM_PARTITIONS"));
   final static int replication = Integer.parseInt(System.getenv("NUM_REPLICAS"));
+  final static RackAwareMode rackAwareMode = Safe$.MODULE$;
 
   final static int nRetries = Integer.parseInt(System.getenv("NUM_CREATE_RETRIES"));
 
@@ -64,7 +67,7 @@ public class Client {
     System.out.println("Creating topic " + topicName);
     Properties topicConfig = new Properties(); // add per-topic configurations settings here
     try {
-      AdminUtils.createTopic(zkUtils, topicName, partitions, replication, topicConfig);
+      AdminUtils.createTopic(zkUtils, topicName, partitions, replication, topicConfig, rackAwareMode);
     } catch (Exception e) {
       if (nRetriesLeft <= 0) {
         throw new RuntimeException("Failed to create topic \"" + topicName + "\". Is Kafka and Zookeeper running?");
