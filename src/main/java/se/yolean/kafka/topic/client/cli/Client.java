@@ -1,3 +1,4 @@
+package se.yolean.kafka.topic.client.cli;
 import kafka.admin.AdminOperationException;
 import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.ZkConnection;
