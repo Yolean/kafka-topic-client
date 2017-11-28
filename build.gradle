@@ -28,6 +28,8 @@ dependencies {
   compile group: 'org.apache.kafka', name: 'kafka_2.12', version: '1.0.0'
   compile group: 'com.101tec', name: 'zkclient', version: '0.10'
 
+  compile group: 'io.confluent', name: 'kafka-schema-registry-client', version: '4.0.0'
+
   runtime group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.25'
   compile group: 'structlog4j', name: 'structlog4j-api', version: '1.0.0'
   compile group: 'structlog4j', name: 'structlog4j-json', version: '1.0.0'
