@@ -2,8 +2,12 @@ package se.yolean.kafka.topic.client.service;
 
 import java.util.Properties;
 
+import org.apache.avro.Schema;
+
 import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
+
+import se.yolean.kafka.topic.mgmt.TopicSchemaSourceProvider;
 
 public class IntegrationTestConfigLocalhost extends AbstractModule {
 
@@ -23,6 +27,7 @@ public class IntegrationTestConfigLocalhost extends AbstractModule {
 
     bind(String.class).annotatedWith(Names.named("config:schemaRegistryUrl")).toInstance("http://localhost:8081");
 
+    bind(Schema.class).toProvider(TopicSchemaSourceProvider.class);
   }
 
 }

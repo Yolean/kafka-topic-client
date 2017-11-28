@@ -41,7 +41,7 @@ public class TopicDeclarationsTopicCheck {
   @Named("config:adminTopicDesiredReplicationFactor")
   private int desiredReplicationFactor;
 
-  void createOrVerifySchemaTopic() throws StoreInitializationException {
+  void createOrVerifyAdminTopic() throws StoreInitializationException {
 
     try (AdminClient admin = AdminClient.create(props)) {
       //

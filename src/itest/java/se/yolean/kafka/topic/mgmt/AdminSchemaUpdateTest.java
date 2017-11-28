@@ -22,8 +22,18 @@ import se.yolean.kafka.topic.client.service.IntegrationTestConfigLocalhost;
 
 public class AdminSchemaUpdateTest {
 
+  private static Injector injector;
+
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
+    injector = Guice.createInjector(
+        new IntegrationTestConfigLocalhost(),
+        new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(SchemaRegistryClient.class).toProvider(SchemaRegistryClientProvider.class);
+      }
+    });
   }
 
   @AfterClass
@@ -40,16 +50,14 @@ public class AdminSchemaUpdateTest {
 
   @Test
   public void test() throws Exception {
-    Injector injector = Guice.createInjector(
-        new IntegrationTestConfigLocalhost(),
-        new AbstractModule() {
-      @Override
-      protected void configure() {
-        bind(SchemaRegistryClient.class).toProvider(SchemaRegistryClientProvider.class);
-      }
-    });
     AdminSchemaUpdate update = injector.getInstance(AdminSchemaUpdate.class);
-    update.getCurrentSchemaVersion();
+    update.getCurrentSchema();
+  }
+
+  @Test
+  public void uploadSchemaTest() throws Exception {
+    AdminSchemaUpdate update = injector.getInstance(AdminSchemaUpdate.class);
+    update.uploadCurrentSchema();
   }
 
 }

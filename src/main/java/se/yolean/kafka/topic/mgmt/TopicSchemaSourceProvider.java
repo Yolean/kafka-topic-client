@@ -2,13 +2,15 @@ package se.yolean.kafka.topic.mgmt;
 
 import javax.inject.Provider;
 
+import org.apache.avro.Schema;
+
 import se.yolean.kafka.topic.declaration.Topic;
 
-public class TopicSchemaSourceProvider implements Provider<String> {
+public class TopicSchemaSourceProvider implements Provider<Schema> {
 
   @Override
-  public String get() {
-    return Topic.SCHEMA$.toString();
+  public Schema get() {
+    return Topic.SCHEMA$;
   }
 
 }

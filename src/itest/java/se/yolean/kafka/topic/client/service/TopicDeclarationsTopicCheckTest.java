@@ -33,7 +33,7 @@ public class TopicDeclarationsTopicCheckTest {
   public void test() throws Exception {
     Injector injector = Guice.createInjector(new IntegrationTestConfigLocalhost());
     TopicDeclarationsTopicCheck check = injector.getInstance(TopicDeclarationsTopicCheck.class);
-    check.createOrVerifySchemaTopic();
+    check.createOrVerifyAdminTopic();
   }
 
 }
