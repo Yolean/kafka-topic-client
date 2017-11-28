@@ -53,12 +53,12 @@ public class TopicDeclarationsTopicCheck {
       }
     } catch (TimeoutException e) {
       throw new StoreInitializationException(
-          "Timed out trying to create or validate schema topic configuration",
+          "Timed out trying to create or validate topic declarations topic configuration",
           e
       );
     } catch (InterruptedException | ExecutionException e) {
       throw new StoreInitializationException(
-          "Failed trying to create or validate schema topic configuration",
+          "Failed trying to create or validate topic declarations topic configuration",
           e
       );
     }
@@ -78,7 +78,7 @@ public class TopicDeclarationsTopicCheck {
 
     int schemaTopicReplicationFactor = Math.min(numLiveBrokers, desiredReplicationFactor);
     if (schemaTopicReplicationFactor < desiredReplicationFactor) {
-      log.warn("Creating the schema topic "
+      log.warn("Creating the topic declarations topic "
                + topic
                + " using a replication factor of "
                + schemaTopicReplicationFactor
@@ -99,7 +99,7 @@ public class TopicDeclarationsTopicCheck {
           .get(initTimeout, TimeUnit.MILLISECONDS);
     } catch (ExecutionException e) {
       if (e.getCause() instanceof TopicExistsException) {
-        // This is ok.
+        log.warn("Topic {} exists, but was not listed. Concurrent operations?", topic);
       } else {
         throw e;
       }
@@ -119,12 +119,12 @@ public class TopicDeclarationsTopicCheck {
     TopicDescription description = topicDescription.get(topic);
     final int numPartitions = description.partitions().size();
     if (numPartitions != 1) {
-      throw new StoreInitializationException("The schema topic " + topic + " should have only 1 "
+      throw new StoreInitializationException("The topic declarations topic " + topic + " should have only 1 "
                                              + "partition but has " + numPartitions);
     }
 
     if (description.partitions().get(0).replicas().size() < desiredReplicationFactor) {
-      log.warn("The replication factor of the schema topic "
+      log.warn("The replication factor of the topic declarations topic "
                + topic
                + " is less than the desired one of "
                + desiredReplicationFactor
@@ -140,12 +140,12 @@ public class TopicDeclarationsTopicCheck {
     Config topicConfigs = configs.get(topicResource);
     String retentionPolicy = topicConfigs.get(TopicConfig.CLEANUP_POLICY_CONFIG).value();
     if (retentionPolicy == null || !TopicConfig.CLEANUP_POLICY_COMPACT.equals(retentionPolicy)) {
-      log.error("The retention policy of the schema topic " + topic + " is incorrect. "
+      log.error("The retention policy of the topic declarations topic " + topic + " is incorrect. "
                 + "You must configure the topic to 'compact' cleanup policy to avoid Kafka "
                 + "deleting your schemas after a week. "
                 + "Refer to Kafka documentation for more details on cleanup policies");
 
-      throw new StoreInitializationException("The retention policy of the schema topic " + topic
+      throw new StoreInitializationException("The retention policy of the topic declarations topic " + topic
                                              + " is incorrect. Expected cleanup.policy to be "
                                              + "'compact' but it is " + retentionPolicy);
 

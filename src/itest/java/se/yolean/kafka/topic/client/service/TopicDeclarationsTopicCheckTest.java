@@ -8,10 +8,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.sun.javafx.scene.control.Properties;
 
 public class TopicDeclarationsTopicCheckTest {
 

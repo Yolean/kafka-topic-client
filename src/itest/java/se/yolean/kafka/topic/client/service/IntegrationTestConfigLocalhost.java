@@ -20,6 +20,9 @@ public class IntegrationTestConfigLocalhost extends AbstractModule {
     bind(Integer.class).annotatedWith(Names.named("config:adminTopicDesiredReplicationFactor")).toInstance(1);
 
     bind(Properties.class).annotatedWith(Names.named("admin")).toProvider(AdminClientPropsProvider.class);
+
+    bind(String.class).annotatedWith(Names.named("config:schemaRegistryUrl")).toInstance("http://localhost:8081");
+
   }
 
 }
