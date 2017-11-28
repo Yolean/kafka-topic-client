@@ -1,3 +1,4 @@
+
 repositories {
   mavenCentral()
   jcenter()
@@ -14,10 +15,15 @@ apply plugin: "jacoco"
 
 group 'se.yolean'
 
+sourceCompatibility = 1.8
+
 apply plugin: 'application'
 mainClassName = 'se.yolean.kafka.topic.client.cli.Client'
 
-sourceCompatibility = 1.8
+configurations {
+  compile.exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+  compile.exclude group: 'log4j', module: 'log4j'
+}
 
 dependencies {
   compile group: 'javax.inject', name: 'javax.inject', version: '1'
@@ -31,6 +37,7 @@ dependencies {
   compile group: 'io.confluent', name: 'kafka-schema-registry-client', version: '4.0.0'
 
   runtime group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.25'
+  runtime group: 'org.slf4j', name: 'log4j-over-slf4j', version: '1.7.25'
   compile group: 'structlog4j', name: 'structlog4j-api', version: '1.0.0'
   compile group: 'structlog4j', name: 'structlog4j-json', version: '1.0.0'
 
@@ -55,6 +62,12 @@ buildscript {
   }
   dependencies {
     classpath 'org.standardout:gradle-eclipseconfig:1.1.0'
+    classpath 'org.unbroken-dome.gradle-plugins:gradle-testsets-plugin:1.4.2'
   }
 }
 apply plugin: 'org.standardout.eclipseconfig'
+
+apply plugin: 'org.unbroken-dome.test-sets'
+testSets {
+  itest
+}

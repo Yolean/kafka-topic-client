@@ -33,15 +33,9 @@ public class TopicDeclarationsTopicCheckTest {
 
   @Test
   public void test() throws Exception {
-    Injector injector = Guice.createInjector(new AbstractModule() {
-      @Override
-      protected void configure() {
-        bind(Properties.class).toInstance(new Properties());
-        //bind(TopicDeclarationsTopicCheck.class);
-      }
-    });
-    //TopicDeclarationsTopicCheck check = injector.getInstance(TopicDeclarationsTopicCheck.class);
-    //check.createOrVerifySchemaTopic();
+    Injector injector = Guice.createInjector(new IntegrationTestConfigLocalhost());
+    TopicDeclarationsTopicCheck check = injector.getInstance(TopicDeclarationsTopicCheck.class);
+    check.createOrVerifySchemaTopic();
   }
 
 }
