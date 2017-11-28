@@ -7,9 +7,11 @@ import com.google.inject.name.Names;
 
 public class IntegrationTestConfigLocalhost extends AbstractModule {
 
+  public static final int KAFKA_LISTENER_PORT = 9094;
+
   @Override
   protected void configure() {
-    bind(String.class).annotatedWith(Names.named("config:bootstrap")).toInstance("localhost:9092");
+    bind(String.class).annotatedWith(Names.named("config:bootstrap")).toInstance("localhost:" + KAFKA_LISTENER_PORT);
 
     bind(String.class).annotatedWith(Names.named("config:adminTopic")).toInstance("_topic_declarations");
 
