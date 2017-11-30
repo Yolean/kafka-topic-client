@@ -8,6 +8,7 @@ import javax.inject.Provider;
 
 import org.apache.kafka.clients.admin.AdminClientConfig;
 
+@Deprecated // Inject AdminClient directly
 public class AdminClientPropsProvider implements Provider<Properties> {
 
 	private String bootstrap;

@@ -3,6 +3,11 @@ import kafka.admin.AdminOperationException;
 import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.ZkConnection;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
@@ -14,6 +19,8 @@ import kafka.utils.ZkUtils;
 
 public class Client {
 
+  final static String DEFAULT_PROPERTIES_FILE = "defaults.properties";
+
   final static String topicName = System.getenv("TOPIC_NAME");
   final static boolean resetTopic = Boolean.parseBoolean(System.getenv("RESET_TOPIC"));
   final static int partitions = Integer.parseInt(System.getenv("NUM_PARTITIONS"));
@@ -24,7 +31,51 @@ public class Client {
 
   final static String zookeeperConnect = System.getenv("ZOOKEEPER_CONNECT");
 
+  static ClassLoader getClassLoaderForDefaults() {
+    return Client.class.getClassLoader();
+  }
+
+  static ManagedTopicsService managerStart(String managerPropertiesPath) {
+    Properties properties = new Properties();
+    InputStream defaultProperties = getClassLoaderForDefaults().getResourceAsStream(DEFAULT_PROPERTIES_FILE);
+    if (defaultProperties == null) {
+      throw new RuntimeException("Failed to load default properties " + DEFAULT_PROPERTIES_FILE);
+    }
+    try {
+      properties.load(defaultProperties);
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to load default properties from " + DEFAULT_PROPERTIES_FILE, e);
+    }
+
+    File managerProperties = new File(managerPropertiesPath);
+    if (!managerProperties.exists()) {
+      throw new RuntimeException("Failed to find properties file " + managerPropertiesPath);
+    }
+    if (!managerProperties.canRead()) {
+      throw new RuntimeException("Unreadable properties file " + managerPropertiesPath);
+    }
+    FileReader managerPropertiesReader;
+    try {
+      managerPropertiesReader = new FileReader(managerProperties);
+    } catch (FileNotFoundException e) {
+      throw new RuntimeException("Reader failed to find properties file " + managerPropertiesPath, e);
+    }
+    try {
+      properties.load(managerPropertiesReader);
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to read properties file " + managerPropertiesPath, e);
+    }
+
+    return new ManagedTopicsService(properties);
+  }
+
   public static void main(String[] args) throws Exception {
+    if (args.length > 0) {
+      String managerPropertiesPath = args[0];
+      managerStart(managerPropertiesPath);
+      return;
+    }
+
     if (topicName.length() < 1) throw new Exception("Missing environment variable 'TOPIC_NAME'!");
     if (zookeeperConnect.length() < 1) throw new Exception("Missing environment variable 'ZOOKEEKER_CONNECT'");
 
