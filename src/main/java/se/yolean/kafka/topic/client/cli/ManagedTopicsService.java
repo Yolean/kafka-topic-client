@@ -16,9 +16,9 @@ import com.nurkiewicz.asyncretry.RetryExecutor;
 
 import se.yolean.kafka.topic.client.config.ManagerConfigModule;
 import se.yolean.kafka.topic.client.config.MetricsModule;
+import se.yolean.kafka.topic.client.retryable.RestProxySetup;
+import se.yolean.kafka.topic.client.retryable.SchemaRegistrySetup;
 import se.yolean.kafka.topic.client.config.ExecutorRetryProviderForInit;
-import se.yolean.kafka.topic.client.tasks.RestProxySetup;
-import se.yolean.kafka.topic.client.tasks.SchemaRegistrySetup;
 
 public class ManagedTopicsService {
 
@@ -34,6 +34,8 @@ public class ManagedTopicsService {
 
     MetricsModule.Exporter exporter = initContext.getInstance(MetricsModule.Exporter.class);
     log.info("Metrics exporter", "status", exporter.getStatus(), "port", exporter.getHttpPort());
+
+
 
     SchemaRegistrySetup shemaRegistry = initContext.getInstance(SchemaRegistrySetup.class);
 

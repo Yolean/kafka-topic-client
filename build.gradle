@@ -36,6 +36,10 @@ dependencies {
 
   compile group: 'io.confluent', name: 'kafka-schema-registry-client', version: '4.0.0'
 
+  compile group: 'com.nurkiewicz.asyncretry', name: 'asyncretry', version: '0.0.7'
+  //compile group: 'com.github.rholder', name: 'guava-retrying', version: '2.0.0'
+  compile group: 'com.evanlennick', name: 'retry4j', version: '0.7.2'
+  
   runtime group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.25'
   runtime group: 'org.slf4j', name: 'log4j-over-slf4j', version: '1.7.25'
   compile group: 'structlog4j', name: 'structlog4j-api', version: '1.0.0'

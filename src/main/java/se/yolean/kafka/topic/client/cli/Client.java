@@ -19,7 +19,7 @@ import kafka.utils.ZkUtils;
 
 public class Client {
 
-  final static String DEFAULT_PROPERTIES_FILE = "defaults.properties";
+  public final static String DEFAULT_PROPERTIES_FILE = "default.properties";
 
   final static String topicName = System.getenv("TOPIC_NAME");
   final static boolean resetTopic = Boolean.parseBoolean(System.getenv("RESET_TOPIC"));

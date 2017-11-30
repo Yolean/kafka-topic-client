@@ -1,4 +1,4 @@
-package se.yolean.kafka.topic.client.tasks;
+package se.yolean.kafka.topic.client.retryable;
 
 import java.util.concurrent.Callable;
 
