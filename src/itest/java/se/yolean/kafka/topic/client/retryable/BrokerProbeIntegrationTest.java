@@ -16,14 +16,6 @@ import se.yolean.kafka.topic.client.service.AdminClientProvider;
 
 public class BrokerProbeIntegrationTest {
 
-  /**
-   * Troubleshooting issues with tests working only when run individually.
-   */
-  @After
-  public void waitForAdminClientClose() throws InterruptedException {
-    Thread.sleep(1000);
-  }
-
   @Test
   public void test() throws Exception {
     Injector conf = Guice.createInjector(ItestProps.DOCKER_COMPOSE, new AbstractModule() {

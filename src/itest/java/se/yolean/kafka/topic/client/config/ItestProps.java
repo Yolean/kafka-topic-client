@@ -10,7 +10,6 @@ import java.util.Properties;
 import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
 
-import io.prometheus.client.CollectorRegistry;
 import se.yolean.kafka.topic.client.cli.Client;
 
 public class ItestProps extends AbstractModule {
@@ -21,19 +20,49 @@ public class ItestProps extends AbstractModule {
   private Properties config;
 
   public ItestProps(String itestPropertiesFielnameInClasspathRoot) {
+    this(getItestProperties(itestPropertiesFielnameInClasspathRoot));
+  }
+
+  public ItestProps(File itestPropertiesFile) {
+    this(getItestProperties(itestPropertiesFile));
+  }
+
+  protected ItestProps(Properties properties) {
+    this.config = properties;
+  }
+
+  public ItestProps override(String key, String value) {
+    Properties properties = new Properties();
+    properties.putAll(this.config);
+    properties.setProperty(key, value);
+    return new ItestProps(properties);
+  }
+
+  public ItestProps override(String key, int value) {
+    return this.override(key, Integer.toString(value));
+  }
+
+  @Override
+  protected void configure() {
+    System.out.print("Itest props: ");
+    this.config.list(System.out);
+    Names.bindProperties(super.binder(), this.config);
+  }
+
+  private static Properties getItestProperties(String itestPropertiesFielnameInClasspathRoot) {
     Properties properties = new Properties();
     try {
       InputStream defaultProperties = Client.class.getResourceAsStream(Client.DEFAULT_PROPERTIES_FILE);
       properties.load(defaultProperties);
-      InputStream itestProperties = this.getClass().getResourceAsStream(itestPropertiesFielnameInClasspathRoot);
+      InputStream itestProperties = ItestProps.class.getResourceAsStream(itestPropertiesFielnameInClasspathRoot);
       properties.load(itestProperties);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    this.config = properties;
+    return properties;
   }
 
-  public ItestProps(File itestPropertiesFile) {
+  private static Properties getItestProperties(File itestPropertiesFile) {
     Properties properties = new Properties();
     try {
       FileReader defaults = new FileReader(new File("src/main/resources/" + Client.DEFAULT_PROPERTIES_FILE));
@@ -45,24 +74,7 @@ public class ItestProps extends AbstractModule {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    this.config = properties;
-  }
-
-  public ItestProps override(String key, String value) {
-    this.config.setProperty(key, value);
-    return this;
-  }
-
-  public ItestProps override(String key, int value) {
-    this.config.setProperty(key, Integer.toString(value));
-    return this;
-  }
-
-  @Override
-  protected void configure() {
-    System.out.print("Itest props: ");
-    this.config.list(System.out);
-    Names.bindProperties(super.binder(), this.config);
+    return properties;
   }
 
 }

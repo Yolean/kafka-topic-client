@@ -75,7 +75,7 @@ public class BrokerProbe implements Callable<BrokerProbe.KafkaStatus> {
       timeouts.labels("broker_probe").inc();
       throw e;
     } finally {
-      adminClient.close();
+      adminClient.close(); // depends on provider impl
     }
 
     if (nodes == null) {
