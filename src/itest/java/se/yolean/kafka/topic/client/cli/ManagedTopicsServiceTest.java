@@ -31,6 +31,7 @@ public class ManagedTopicsServiceTest {
         "src/main/resources/default.properties",
         "src/itest/resources/itest-dockercompose.properties"
         );
+    config.setProperty("topic.declarations.consumer.polls.max", Integer.toString(3));
     ManagedTopicsService service = new ManagedTopicsService(config);
     service.start();
   }

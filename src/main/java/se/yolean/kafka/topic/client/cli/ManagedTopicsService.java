@@ -3,26 +3,20 @@ package se.yolean.kafka.topic.client.cli;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Properties;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import com.github.structlog4j.ILogger;
 import com.github.structlog4j.SLoggerFactory;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.nurkiewicz.asyncretry.AsyncRetryExecutor;
 
-import se.yolean.kafka.topic.client.config.ConcurrencyModule;
 import se.yolean.kafka.topic.client.config.ConfigModule;
 import se.yolean.kafka.topic.client.config.ManagerInitModule;
 import se.yolean.kafka.topic.client.config.MetricsModule;
 import se.yolean.kafka.topic.client.retryable.BrokerProbe;
-import se.yolean.kafka.topic.client.retryable.BrokerProbe.KafkaStatus;
 import se.yolean.kafka.topic.client.retryable.RestProxySetup;
-import se.yolean.kafka.topic.client.retryable.RestProxySetup.EndpointsStatus;
 import se.yolean.kafka.topic.client.retryable.SchemaRegistrySetup;
-import se.yolean.kafka.topic.client.retryable.SchemaRegistrySetup.AdminSchemaStatus;
+import se.yolean.kafka.topic.manager.configure.TopicDeclarationsPollModule;
+import se.yolean.kafka.topic.manager.tt.TopicsTopicWatcher;
 
 public class ManagedTopicsService implements Runnable {
 
@@ -31,16 +25,20 @@ public class ManagedTopicsService implements Runnable {
   private final Injector serviceContext;
 
   public ManagedTopicsService(Properties config) {
-    serviceContext = Guice.createInjector(new ConfigModule(config), new ConcurrencyModule());
+    serviceContext = Guice.createInjector(
+        // ny async or retry behavior now, so configure long timeouts instead
+        //new ConcurrencyModule(),
+        new ConfigModule(config)
+        );
   }
 
   public void start() {
-    //log.info("Starting Topic Manager Service", "hostname", getHostname());
+    log.info("Starting Topic Manager Service without concurrency", "hostname", getHostname());
     run();
   }
 
   public void stop() {
-    log.warn("TODO shutdown not implemented");
+    log.warn("TODO shutdown not implemented. Send termination signals or configure topic.declarations.consumer.polls.max.");
   }
 
   @Override
@@ -55,42 +53,41 @@ public class ManagedTopicsService implements Runnable {
     MetricsModule.Exporter exporter = initContext.getInstance(MetricsModule.Exporter.class);
     log.info("Metrics exporter", "status", exporter.getStatus(), "port", exporter.getHttpPort());
 
-    final AsyncRetryExecutor tasks = initContext.getInstance(AsyncRetryExecutor.class);
-
     BrokerProbe brokerProbe = initContext.getInstance(BrokerProbe.class);
-
-    // How to execute a task depends on concurrency ambitions,
-    // with plain Kafka API impls actually more suitable for a dedicated thread
-    // and long configured timeouts in this service.
-    // On the other hand, short timeouts (aborting Kafka clients' own retry+backoff)
-    // enables concurrency with other tasks such as REST-based
-    CompletableFuture<KafkaStatus> brokers = tasks.getWithRetry(brokerProbe);
+    BrokerProbe.KafkaStatus status;
+    try {
+      status = brokerProbe.call();
+    } catch (Exception e) {
+      throw new RuntimeException("unhandled", e);
+    }
 
     SchemaRegistrySetup schemaRegistry = initContext.getInstance(SchemaRegistrySetup.class);
-    CompletableFuture<AdminSchemaStatus> schemas = tasks.getWithRetry(schemaRegistry);
-
-    brokers.thenAcceptBoth(schemas, (KafkaStatus s, AdminSchemaStatus i) -> {
-
-      log.info("Both kafka and schema registry is ok, now create REST producer for declarations");
-      RestProxySetup restProxy = initContext.getInstance(RestProxySetup.class);
-
-      CompletableFuture<EndpointsStatus> rest = tasks.getWithRetry(restProxy);
-      rest.thenAccept(endpoints -> {
-        log.info("REST endpoints also OK, let's start consuming topic declarations");
-        log.warn("Big fat TODO");
-      });
-
-    });
-
-    while (true) {
-      // we need to wait for the management loop here, but it can't start until the above has completed
-      log.debug("Somewhere here we'll be repeating the topic management loop");
-      try {
-        Thread.sleep(5000);
-      } catch (InterruptedException e) {
-        log.info("Exiting");
-      }
+    SchemaRegistrySetup.AdminSchemaStatus schemas;
+    try {
+      schemas = schemaRegistry.call();
+    } catch (Exception e) {
+      throw new RuntimeException("unhandled", e);
     }
+
+    log.info("Both kafka and schema registry is ok, now create REST producer for declarations");
+    RestProxySetup restProxy = initContext.getInstance(RestProxySetup.class);
+
+    RestProxySetup.EndpointsStatus rest;
+    try {
+      rest = restProxy.call();
+    } catch (Exception e) {
+      throw new RuntimeException("unhandled", e);
+    }
+
+    log.info("REST endpoints also OK, let's start consuming topic declarations");
+
+    Injector managerContext = initContext.createChildInjector(
+        new TopicDeclarationsPollModule(status, schemas, rest));
+
+
+    TopicsTopicWatcher watch = managerContext.getInstance(TopicsTopicWatcher.class);
+    log.info("Handing control over to topic declarations poll loop", "impl", watch.getClass());
+    watch.run();
   }
 
   String getHostname() {
