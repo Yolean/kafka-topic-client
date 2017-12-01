@@ -12,13 +12,13 @@ import org.junit.Test;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
-public class ManagerConfigModuleTest {
+public class ConfigModuleTest {
 
   @Test
   public void test() {
     Properties props = new Properties();
     props.setProperty("bootstrap.servers", "PLAINTEXT://my-test-value:9092");
-    Injector injector = Guice.createInjector(new ManagerConfigModule(props));
+    Injector injector = Guice.createInjector(new ConfigModule(props));
     TestService1 t1 = injector.getInstance(TestService1.class);
     assertEquals("PLAINTEXT://my-test-value:9092", t1.boostrapServers);
   }

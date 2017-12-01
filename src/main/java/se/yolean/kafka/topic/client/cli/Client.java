@@ -35,7 +35,7 @@ public class Client {
     return Client.class.getClassLoader();
   }
 
-  static ManagedTopicsService managerStart(String managerPropertiesPath) {
+  static void managerStart(String managerPropertiesPath) {
     Properties properties = new Properties();
     InputStream defaultProperties = getClassLoaderForDefaults().getResourceAsStream(DEFAULT_PROPERTIES_FILE);
     if (defaultProperties == null) {
@@ -66,7 +66,7 @@ public class Client {
       throw new RuntimeException("Failed to read properties file " + managerPropertiesPath, e);
     }
 
-    return new ManagedTopicsService(properties);
+    new ManagedTopicsService(properties).start();
   }
 
   public static void main(String[] args) throws Exception {

@@ -29,7 +29,6 @@ public class MetricsModule extends AbstractModule implements Provider<MetricsMod
     } catch (IOException e) {
       throw new RuntimeException("Failed to start metrics exporter on port " + port, e);
     }
-    bind(HTTPServer.class).toInstance(server);
 
     return new Exporter() {
 

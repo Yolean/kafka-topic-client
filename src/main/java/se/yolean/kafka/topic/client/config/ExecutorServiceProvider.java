@@ -19,8 +19,6 @@ public class ExecutorServiceProvider implements Provider<ScheduledExecutorServic
     if (shared == null) {
       log.info("Creating new executor");
       shared = Executors.newSingleThreadScheduledExecutor();
-    } else {
-      log.warn("Reusing shared executor instance");
     }
     return shared;
   }

@@ -4,6 +4,8 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import com.github.structlog4j.ILogger;
 import com.github.structlog4j.SLoggerFactory;
@@ -11,7 +13,9 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.nurkiewicz.asyncretry.RetryExecutor;
 
-import se.yolean.kafka.topic.client.config.ManagerConfigModule;
+import se.yolean.kafka.topic.client.config.ConcurrencyModule;
+import se.yolean.kafka.topic.client.config.ConfigModule;
+import se.yolean.kafka.topic.client.config.ManagerInitModule;
 import se.yolean.kafka.topic.client.config.MetricsModule;
 import se.yolean.kafka.topic.client.retryable.BrokerProbe;
 import se.yolean.kafka.topic.client.retryable.BrokerProbe.KafkaStatus;
@@ -20,15 +24,31 @@ import se.yolean.kafka.topic.client.retryable.RestProxySetup.EndpointsStatus;
 import se.yolean.kafka.topic.client.retryable.SchemaRegistrySetup;
 import se.yolean.kafka.topic.client.retryable.SchemaRegistrySetup.AdminSchemaStatus;
 
-public class ManagedTopicsService {
+public class ManagedTopicsService implements Runnable {
 
   public final ILogger log = SLoggerFactory.getLogger(this.getClass());
 
-  public ManagedTopicsService(Properties config) {
-    log.info("Starting Topic Manager Service", "hostname", getHostname());
+  private final Injector serviceContext;
 
-    Injector initContext = Guice.createInjector(
-        new ManagerConfigModule(config),
+  public ManagedTopicsService(Properties config) {
+    serviceContext = Guice.createInjector(new ConfigModule(config), new ConcurrencyModule());
+  }
+
+  public void start() {
+    //log.info("Starting Topic Manager Service", "hostname", getHostname());
+    run();
+  }
+
+  public void stop() {
+    log.warn("TODO shutdown not implemented");
+  }
+
+  @Override
+  public void run() {
+    log.info("Running Topic Manager Service");
+
+    Injector initContext = serviceContext.createChildInjector(
+        new ManagerInitModule(),
         new MetricsModule()
         );
 
@@ -61,6 +81,16 @@ public class ManagedTopicsService {
       });
 
     });
+
+    while (true) {
+      // we need to wait for the management loop here, but it can't start until the above has completed
+      log.debug("Somewhere here we'll be repeating the topic management loop");
+      try {
+        Thread.sleep(5000);
+      } catch (InterruptedException e) {
+        log.info("Exiting");
+      }
+    }
   }
 
   String getHostname() {
