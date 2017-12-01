@@ -15,8 +15,6 @@ import se.yolean.kafka.topic.client.cli.Client;
 
 public class ItestProps extends AbstractModule {
 
-  public static final CollectorRegistry PROMETHEUS_REGISTRY = new CollectorRegistry();
-
   //public static final ItestProps DOCKER_COMPOSE = new ItestProps("itest-dockercompose.properties");
   public static final ItestProps DOCKER_COMPOSE = new ItestProps(new File("src/itest/resources/itest-dockercompose.properties"));
 
@@ -48,6 +46,16 @@ public class ItestProps extends AbstractModule {
       throw new RuntimeException(e);
     }
     this.config = properties;
+  }
+
+  public ItestProps override(String key, String value) {
+    this.config.setProperty(key, value);
+    return this;
+  }
+
+  public ItestProps override(String key, int value) {
+    this.config.setProperty(key, Integer.toString(value));
+    return this;
   }
 
   @Override

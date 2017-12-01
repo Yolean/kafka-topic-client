@@ -27,22 +27,23 @@ public class BrokerProbe implements Callable<BrokerProbe.KafkaStatus> {
 
   // Should be made configurable, but let's keep them short and work on back-off
 
-  static final Counter timeouts = Counter.build().name("timeouts").labelNames("broker_probe")
-      .help("AdminClient.describeCluster timeouts").register();
+  static final Counter timeouts = Counter.build()
+      .name("kafkatopics_timeouts").help("AdminClient.describeCluster timeouts")
+      .labelNames("broker_probe").register();
 
   @Inject
   private AdminClient adminClient;
 
   @Inject
-  @Named("brokers.describe.timeout")
-  private int describeTimeoutMs = 1;
+  @Named("brokers.describe.timeout.ms")
+  private int describeTimeoutMs;
 
   @Inject
-  @Named("brokers.describe.get.timeout")
-  private int nodesTimeoutMs = 10;
+  @Named("brokers.describe.get.timeout.ms")
+  private int nodesTimeoutMs;
 
   @Inject
-  @Named("brokers.available.min")
+  @Named("brokers.describe.available.min")
   private int brokersAvailableMin;
 
   @Override
@@ -57,12 +58,24 @@ public class BrokerProbe implements Callable<BrokerProbe.KafkaStatus> {
     try {
       nodes = nodesFuture.get(nodesTimeoutMs, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
-      log.error("Interrupted when waiting for controller status", e);
+      log.error("Interrupted when waiting for nodes status", e);
+      throw e;
     } catch (ExecutionException e) {
-      log.error("Execution error for controller status", e);
+      if (e.getCause() instanceof org.apache.kafka.common.errors.TimeoutException) {
+        log.warn("Timeout waiting for describe nodes", "ms", describeTimeoutMs, "exception", e.getClass(),
+            "cause", e.getCause().getClass(), "causeMsg", e.getCause().getMessage());
+        timeouts.labels("broker_probe").inc();
+        throw (org.apache.kafka.common.errors.TimeoutException) e.getCause();
+      } else {
+        log.error("Execution error for nodes status", e);
+        throw e;
+      }
     } catch (TimeoutException e) {
-      log.warn("Timeout waiting for controller response", "ms", nodesTimeoutMs, e);
-      timeouts.inc();
+      log.warn("Timeout waiting for nodes response", "ms", nodesTimeoutMs);
+      timeouts.labels("broker_probe").inc();
+      throw e;
+    } finally {
+      adminClient.close();
     }
 
     if (nodes == null) {
