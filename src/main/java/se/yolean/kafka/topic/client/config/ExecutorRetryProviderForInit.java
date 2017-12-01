@@ -3,16 +3,22 @@ package se.yolean.kafka.topic.client.config;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
+import javax.inject.Inject;
 import javax.inject.Provider;
 
 import com.nurkiewicz.asyncretry.AsyncRetryExecutor;
-import com.nurkiewicz.asyncretry.RetryExecutor;
 
-public class ExecutorRetryProviderForInit implements Provider<RetryExecutor> {
+public class ExecutorRetryProviderForInit implements Provider<AsyncRetryExecutor> {
+
+  private ScheduledExecutorService concurrency;
+
+  @Inject
+  public ExecutorRetryProviderForInit(ScheduledExecutorService concurrency) {
+    this.concurrency = concurrency;
+  }
 
   @Override
-  public RetryExecutor get() {
-    ScheduledExecutorService concurrency = Executors.newSingleThreadScheduledExecutor();
+  public AsyncRetryExecutor get() {
     AsyncRetryExecutor executor = new AsyncRetryExecutor(concurrency)
         //.retryOn(Throwable.class)
         .withExponentialBackoff(500, 2)     //500ms times 2 after each retry

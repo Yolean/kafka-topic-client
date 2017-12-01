@@ -11,7 +11,7 @@ import com.github.structlog4j.ILogger;
 import com.github.structlog4j.SLoggerFactory;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.nurkiewicz.asyncretry.RetryExecutor;
+import com.nurkiewicz.asyncretry.AsyncRetryExecutor;
 
 import se.yolean.kafka.topic.client.config.ConcurrencyModule;
 import se.yolean.kafka.topic.client.config.ConfigModule;
@@ -55,7 +55,7 @@ public class ManagedTopicsService implements Runnable {
     MetricsModule.Exporter exporter = initContext.getInstance(MetricsModule.Exporter.class);
     log.info("Metrics exporter", "status", exporter.getStatus(), "port", exporter.getHttpPort());
 
-    final RetryExecutor tasks = initContext.getInstance(RetryExecutor.class);
+    final AsyncRetryExecutor tasks = initContext.getInstance(AsyncRetryExecutor.class);
 
     BrokerProbe brokerProbe = initContext.getInstance(BrokerProbe.class);
 
