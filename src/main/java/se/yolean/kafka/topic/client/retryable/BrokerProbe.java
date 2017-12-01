@@ -1,6 +1,5 @@
 package se.yolean.kafka.topic.client.retryable;
 
-import java.time.Duration;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;

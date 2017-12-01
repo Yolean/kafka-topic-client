@@ -1,4 +1,4 @@
-package se.yolean.kafka.topic.client.service;
+package se.yolean.kafka.topic.client.config;
 
 import java.util.Properties;
 

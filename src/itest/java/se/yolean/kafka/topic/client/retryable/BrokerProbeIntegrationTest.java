@@ -4,15 +4,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import org.apache.kafka.clients.admin.AdminClient;
-import org.junit.After;
 import org.junit.Test;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
+import se.yolean.kafka.topic.client.config.AdminClientProvider;
 import se.yolean.kafka.topic.client.config.ItestProps;
-import se.yolean.kafka.topic.client.service.AdminClientProvider;
 
 public class BrokerProbeIntegrationTest {
 
