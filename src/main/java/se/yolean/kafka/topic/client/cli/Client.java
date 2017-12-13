@@ -1,7 +1,13 @@
-import kafka.admin.AdminOperationException;
+package se.yolean.kafka.topic.client.cli;
+
 import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.ZkConnection;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
@@ -13,6 +19,8 @@ import kafka.utils.ZkUtils;
 
 public class Client {
 
+  public final static String DEFAULT_PROPERTIES_FILE = "default.properties";
+
   final static String topicName = System.getenv("TOPIC_NAME");
   final static boolean resetTopic = Boolean.parseBoolean(System.getenv("RESET_TOPIC"));
   final static int partitions = Integer.parseInt(System.getenv("NUM_PARTITIONS"));
@@ -23,10 +31,55 @@ public class Client {
 
   final static String zookeeperConnect = System.getenv("ZOOKEEPER_CONNECT");
 
-  public static void main(String[] args) throws Exception {
-    if (topicName.length() < 1) {
-      throw new Exception("Missing environment variable 'TOPIC_NAME'!");
+  static ClassLoader getClassLoaderForDefaults() {
+    return Client.class.getClassLoader();
+  }
+
+  static void managerStart(String managerPropertiesPath) {
+    Properties properties = new Properties();
+    InputStream defaultProperties = getClassLoaderForDefaults().getResourceAsStream(DEFAULT_PROPERTIES_FILE);
+    if (defaultProperties == null) {
+      throw new RuntimeException("Failed to load default properties " + DEFAULT_PROPERTIES_FILE);
     }
+    try {
+      properties.load(defaultProperties);
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to load default properties from " + DEFAULT_PROPERTIES_FILE, e);
+    }
+
+    File managerProperties = new File(managerPropertiesPath);
+    if (!managerProperties.exists()) {
+      throw new RuntimeException("Failed to find properties file " + managerPropertiesPath);
+    }
+    if (!managerProperties.canRead()) {
+      throw new RuntimeException("Unreadable properties file " + managerPropertiesPath);
+    }
+    FileReader managerPropertiesReader;
+    try {
+      managerPropertiesReader = new FileReader(managerProperties);
+    } catch (FileNotFoundException e) {
+      throw new RuntimeException("Reader failed to find properties file " + managerPropertiesPath, e);
+    }
+    try {
+      properties.load(managerPropertiesReader);
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to read properties file " + managerPropertiesPath, e);
+    }
+
+    new ManagedTopicsService(properties).start();
+  }
+
+  public static void main(String[] args) throws Exception {
+    if (args.length > 0) {
+      String managerPropertiesPath = args[0];
+      managerStart(managerPropertiesPath);
+      return;
+    }
+
+    if (topicName.length() < 1) throw new Exception("Missing environment variable 'TOPIC_NAME'!");
+    if (zookeeperConnect.length() < 1) throw new Exception("Missing environment variable 'ZOOKEEKER_CONNECT'");
+
+    System.out.println("Connecting to zookeeper using address '" + zookeeperConnect + "'");
 
     final int sessionTimeoutMs = 10 * 1000;
     final int connectionTimeoutMs = 8 * 1000;
@@ -69,6 +122,7 @@ public class Client {
     try {
       AdminUtils.createTopic(zkUtils, topicName, partitions, replication, topicConfig, rackAwareMode);
     } catch (Exception e) {
+      System.err.println("Topic create failed due to " + e.toString());
       if (nRetriesLeft <= 0) {
         throw new RuntimeException("Failed to create topic \"" + topicName + "\". Is Kafka and Zookeeper running?");
       } else {
@@ -77,6 +131,8 @@ public class Client {
         tryCreate(zkUtils, topicName, nRetriesLeft - 1);
       }
     }
+
+    System.out.println("Successfully created topic '" + topicName + "'");
   }
 
 }

@@ -1,0 +1,8 @@
+{
+    "name": "Topic",
+    "namespace": "se.yolean.kafka.topic.declaration",
+    "type": "record",
+    "fields" : [
+        {"name": "name", "type": "string" }
+    ]
+}
