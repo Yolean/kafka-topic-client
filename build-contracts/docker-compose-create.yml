@@ -1,11 +1,28 @@
 version: "2"
 services:
   zookeeper:
-    image: solsson/zookeeper
+    image: solsson/kafka:1.0.0@sha256:17fdf1637426f45c93c65826670542e36b9f3394ede1cb61885c6a4befa8f72d
+    entrypoint:
+    - ./bin/zookeeper-server-start.sh
+    command:
+    - ./config/zookeeper.properties
   kafka:
-    image: solsson/kafka
+    image: solsson/kafka:1.0.0@sha256:17fdf1637426f45c93c65826670542e36b9f3394ede1cb61885c6a4befa8f72d
     links:
-      - zookeeper
+    - zookeeper
+    entrypoint:
+    - ./bin/kafka-server-start.sh
+    - ./config/server.properties
+    - --override
+    -   broker.id=0
+    - --override
+    -   zookeeper.connect=zookeeper:2181
+    - --override
+    -   auto.create.topics.enable=false
+    - --override
+    -   default.replication.factor=1
+    - --override
+    -   min.insync.replicas=1
   client:
     build: ../
     image: localhost:5000/yolean/kafka-topic-client:$PUSH_TAG
